@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+        crossorigin="anonymous"></script>
+    <title>计时器</title>
+    <style>
+        .btn-round {
+            margin-top: 100px;
+            width: 200px;
+            height: 200px;
+            border-radius: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
+                data-bs-target="#myModal">历史记录</button>
+        </div>
+        <div class="row">
+            <div class="col align-self-center" style="text-align: center;">
+                <button id="btnStart" type="button" class="btn btn-primary btn-round" onclick="startTrack()">开始</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col align-self-center" style="text-align: center;">
+                <button id="btnEnd" type="button" class="btn btn-danger btn-round" onclick="endTrack()"
+                    style="display: none;">结束</button>
+            </div>
+        </div>
+
+        <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">历史记录</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul id="history"></ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger me-auto" onclick="cleanHist()">清理</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script type="text/javascript">
+        var htmlHist = document.getElementById('history');
+        var btnStart = document.getElementById('btnStart');
+        var btnEnd = document.getElementById('btnEnd');
+        function dateFormat(fmt, date) {
+            let ret;
+            const opt = {
+                "Y+": date.getFullYear().toString(),        // 年
+                "m+": (date.getMonth() + 1).toString(),     // 月
+                "d+": date.getDate().toString(),            // 日
+                "H+": date.getHours().toString(),           // 时
+                "M+": date.getMinutes().toString(),         // 分
+                "S+": date.getSeconds().toString()          // 秒
+                // 有其他格式化字符需求可以继续添加，必须转化成字符串
+            };
+            for (let k in opt) {
+                ret = new RegExp("(" + k + ")").exec(fmt);
+                if (ret) {
+                    fmt = fmt.replace(ret[1], (ret[1].length == 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, "0")))
+                };
+            };
+            return fmt;
+        }
+        function setDisplay(curStat) {
+            if (curStat == 0) {
+                btnStart.style.display = 'none';
+                btnEnd.style.display = 'inline-block';
+            } else {
+                btnStart.style.display = 'inline-block';
+                btnEnd.style.display = 'none';
+            }
+        }
+        function setHist(curStat) {
+            localStorage.setItem("history", htmlHist.innerHTML);
+            localStorage.setItem("curStat", curStat);
+            setDisplay(curStat)
+        }
+        function cleanHist() {
+            htmlHist.innerHTML = "";
+            localStorage.setItem("history", "");
+        }
+        function getHist() {
+            htmlHist.innerHTML = localStorage.getItem("history");
+            setDisplay(localStorage.getItem("curStat"));
+        }
+        function startTrack() {
+            let date = new Date();
+            let fdate = dateFormat("YYYY-mm-dd HH:MM:SS", date);
+
+            htmlHist.innerHTML+='<li>'+ "开始：" + fdate + '</li>';
+            setHist(0);
+        };
+        function endTrack() {
+            let date = new Date();
+            let fdate = dateFormat("YYYY-mm-dd HH:MM:SS", date);
+
+            htmlHist.innerHTML+='<li>'+ "结束：" + fdate + '</li>';
+            setHist(1);
+        };
+        (function() {
+            getHist();
+        })();
+    </script>
+</body>
+
+</html>
