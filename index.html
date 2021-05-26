@@ -28,12 +28,17 @@
                 data-bs-target="#myModal">历史记录</button>
         </div>
         <div class="row">
-            <div class="col align-self-center" style="text-align: center;">
+            <h1 id="clock" class="col" style="text-align: center;font-size: 50px;margin-top: 50px;">
+                00:00
+            </h1>
+        </div>
+        <div class="row">
+            <div class="col" style="text-align: center;">
                 <button id="btnStart" type="button" class="btn btn-primary btn-round" onclick="startTrack()">开始</button>
             </div>
         </div>
         <div class="row">
-            <div class="col align-self-center" style="text-align: center;">
+            <div class="col" style="text-align: center;">
                 <button id="btnEnd" type="button" class="btn btn-danger btn-round" onclick="endTrack()"
                     style="display: none;">结束</button>
             </div>
@@ -62,6 +67,8 @@
         var htmlHist = document.getElementById('history');
         var btnStart = document.getElementById('btnStart');
         var btnEnd = document.getElementById('btnEnd');
+        var htmlClock = document.getElementById('clock');
+        var clock;
         function dateFormat(fmt, date) {
             let ret;
             const opt = {
@@ -107,17 +114,31 @@
             let date = new Date();
             let fdate = dateFormat("YYYY-mm-dd HH:MM:SS", date);
 
-            htmlHist.innerHTML+='<li>'+ "开始：" + fdate + '</li>';
+            var startTime = date.getTime();
+            clock = setInterval(function () {
+                var now = new Date().getTime();
+                var distance = now - startTime;
+                // Time calculations for days, hours, minutes and seconds
+                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                htmlClock.innerHTML = String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
+            }, 1000);
+
+            htmlHist.innerHTML += '<li>' + "开始：" + fdate + '</li>';
             setHist(0);
         };
         function endTrack() {
             let date = new Date();
             let fdate = dateFormat("YYYY-mm-dd HH:MM:SS", date);
 
-            htmlHist.innerHTML+='<li>'+ "结束：" + fdate + '</li>';
+            htmlHist.innerHTML += '<li>' + "结束：" + fdate + '</li>';
             setHist(1);
+
+            clearInterval(clock);
         };
-        (function() {
+        (function () {
             getHist();
         })();
     </script>
