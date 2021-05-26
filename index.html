@@ -29,7 +29,7 @@
         </div>
         <div class="row">
             <h1 id="clock" class="col" style="text-align: center;font-size: 50px;margin-top: 50px;">
-                00:00
+                00:00:00
             </h1>
         </div>
         <div class="row">
@@ -110,21 +110,29 @@
             htmlHist.innerHTML = localStorage.getItem("history");
             setDisplay(localStorage.getItem("curStat"));
         }
+        function setClock() {
+            startTime = localStorage.getItem("startTime") || 0;
+            if (startTime == 0) { return }
+            clock = setInterval(function () {
+                var now = new Date().getTime();
+                var distance = now - startTime;
+                // var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                htmlClock.innerHTML = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
+            }, 1000);
+        }
+        function cleanClock() {
+            localStorage.setItem("startTime", 0);
+            clearInterval(clock);
+        }
         function startTrack() {
             let date = new Date();
             let fdate = dateFormat("YYYY-mm-dd HH:MM:SS", date);
 
-            var startTime = date.getTime();
-            clock = setInterval(function () {
-                var now = new Date().getTime();
-                var distance = now - startTime;
-                // Time calculations for days, hours, minutes and seconds
-                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                htmlClock.innerHTML = String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
-            }, 1000);
+            localStorage.setItem("startTime", date.getTime());
+            setClock();
 
             htmlHist.innerHTML += '<li>' + "开始：" + fdate + '</li>';
             setHist(0);
@@ -136,10 +144,11 @@
             htmlHist.innerHTML += '<li>' + "结束：" + fdate + '</li>';
             setHist(1);
 
-            clearInterval(clock);
+            cleanClock();
         };
         (function () {
             getHist();
+            setClock();
         })();
     </script>
 </body>
