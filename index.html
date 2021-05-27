@@ -64,12 +64,83 @@
 
     </div>
     <script type="text/javascript">
-        var htmlHist = document.getElementById('history');
-        var btnStart = document.getElementById('btnStart');
-        var btnEnd = document.getElementById('btnEnd');
-        var htmlClock = document.getElementById('clock');
-        var clock;
-        function dateFormat(fmt, date) {
+        function History(elemHist) {
+            this.elemHist = elemHist;
+        };
+        History.prototype.append = function (content) {
+            this.elemHist.innerHTML += '<li>' + content + '</li>';
+        };
+        History.prototype.save = function () {
+            localStorage.setItem("history", this.elemHist.innerHTML);
+        };
+        History.prototype.restore = function () {
+            this.elemHist.innerHTML = localStorage.getItem("history");
+        };
+        History.prototype.clean = function () {
+            this.elemHist.innerHTML = "";
+        };
+
+        function Stat(elemStart, elemEnd) {
+            this.stat = localStorage.getItem('stat') || 0;
+            this.elemStart = elemStart;
+            this.elemEnd = elemEnd;
+        };
+        Stat.prototype.start = function () {
+            this.stat = 0;
+            localStorage.setItem('stat', this.stat);
+            this.setDisplay();
+        };
+        Stat.prototype.end = function () {
+            this.stat = 1;
+            localStorage.setItem('stat', this.stat);
+            this.setDisplay();
+        };
+        Stat.prototype.restore = function () {
+            this.setDisplay();
+        };
+        Stat.prototype.setDisplay = function () {
+            if (this.stat == 0) {
+                this.elemStart.style.display = 'none';
+                this.elemEnd.style.display = 'inline-block';
+            } else {
+                this.elemStart.style.display = 'inline-block';
+                this.elemEnd.style.display = 'none';
+            }
+        };
+
+        function Clock(elemClock) {
+            this.time = localStorage.getItem("time") || 0;
+            this.elemClock = elemClock;
+        };
+        Clock.prototype.start = function (time) {
+            this.time = time;
+            localStorage.setItem("time", this.time);
+            this.run();
+        };
+        Clock.prototype.run = function () {
+            t = this.time;
+            c = this.elemClock;
+            setInterval(function () {
+                now = new Date().getTime();
+                distance = now - t;
+                // days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                c.innerHTML = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
+            }, 1000);
+        };
+        Clock.prototype.stop = function (clock) {
+            localStorage.setItem("time", 0);
+            clearInterval();
+        };
+        Clock.prototype.restore = function () {
+            if (this.time != 0) {
+                this.run();
+            }
+        };
+
+        function dateFormat(date) {
             return Intl.DateTimeFormat('zh-CN', {
                 year: 'numeric',
                 month: 'numeric',
@@ -79,68 +150,49 @@
                 second: 'numeric',
                 hour12: false
             }).format(date);
-        }
-        function setDisplay(curStat) {
-            if (curStat == 0) {
-                btnStart.style.display = 'none';
-                btnEnd.style.display = 'inline-block';
-            } else {
-                btnStart.style.display = 'inline-block';
-                btnEnd.style.display = 'none';
-            }
-        }
-        function setHist(curStat) {
-            localStorage.setItem("history", htmlHist.innerHTML);
-            localStorage.setItem("curStat", curStat);
-            setDisplay(curStat)
-        }
+        };
+
+        var htmlHist = document.getElementById('history');
+        var btnStart = document.getElementById('btnStart');
+        var btnEnd = document.getElementById('btnEnd');
+        var htmlClock = document.getElementById('clock');
+
         function cleanHist() {
-            htmlHist.innerHTML = "";
-            localStorage.setItem("history", "");
-        }
-        function getHist() {
-            htmlHist.innerHTML = localStorage.getItem("history");
-            setDisplay(localStorage.getItem("curStat"));
-        }
-        function setClock() {
-            startTime = localStorage.getItem("startTime") || 0;
-            if (startTime == 0) { return }
-            clock = setInterval(function () {
-                var now = new Date().getTime();
-                var distance = now - startTime;
-                // var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                htmlClock.innerHTML = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
-            }, 1000);
-        }
-        function cleanClock() {
-            localStorage.setItem("startTime", 0);
-            clearInterval(clock);
-        }
+            h = new History(htmlHist);
+            h.clean();
+            h.save();
+        };
         function startTrack() {
-            let date = new Date();
-            let fdate = dateFormat("YYYY-mm-dd HH:MM:SS", date);
+            date = new Date();
+            fdate = dateFormat(date);
 
-            localStorage.setItem("startTime", date.getTime());
-            setClock();
-
-            htmlHist.innerHTML += '<li>' + "开始：" + fdate + '</li>';
-            setHist(0);
+            s = new Stat(btnStart, btnEnd);
+            s.start();
+            h = new History(htmlHist);
+            h.append("开始：" + fdate)
+            h.save();
+            c = new Clock(htmlClock);
+            clock = c.start(date.getTime());
         };
         function endTrack() {
-            let date = new Date();
-            let fdate = dateFormat("YYYY-mm-dd HH:MM:SS", date);
+            date = new Date();
+            fdate = dateFormat(date);
 
-            htmlHist.innerHTML += '<li>' + "结束：" + fdate + '</li>';
-            setHist(1);
-
-            cleanClock();
+            s = new Stat(btnStart, btnEnd);
+            s.end();
+            h = new History(htmlHist);
+            h.append("结束：" + fdate);
+            h.save();
+            c = new Clock(htmlClock);
+            c.stop(clock);
         };
         (function () {
-            getHist();
-            setClock();
+            s = new Stat(btnStart, btnEnd);
+            s.restore();
+            h = new History(htmlHist);
+            h.restore();
+            c = new Clock(htmlClock);
+            c.restore();
         })();
     </script>
 </body>
