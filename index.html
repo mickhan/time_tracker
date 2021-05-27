@@ -86,12 +86,12 @@
             this.elemEnd = elemEnd;
         };
         Stat.prototype.start = function () {
-            this.stat = 0;
+            this.stat = 1;
             localStorage.setItem('stat', this.stat);
             this.setDisplay();
         };
         Stat.prototype.end = function () {
-            this.stat = 1;
+            this.stat = 0;
             localStorage.setItem('stat', this.stat);
             this.setDisplay();
         };
@@ -99,7 +99,7 @@
             this.setDisplay();
         };
         Stat.prototype.setDisplay = function () {
-            if (this.stat == 0) {
+            if (this.stat == 1) {
                 this.elemStart.style.display = 'none';
                 this.elemEnd.style.display = 'inline-block';
             } else {
